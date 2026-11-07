@@ -1,0 +1,12 @@
+# секреты и рантайм
+config.json
+proxy.json
+data/
+.cli/
+.venv/
+perch_cli/
+__pycache__/
+*.pyc
+*.log
+*.jsonl
+.perch/
