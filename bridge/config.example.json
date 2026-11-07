@@ -10,6 +10,7 @@
   "max_concurrency": 3,
   "cooldown_sec": 600,
   "max_prompt_chars": 24000,
+  "effort": "off",
   "models": [
     "perch-auto",
     "deepseek-flash-starter",

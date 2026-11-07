@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """perch2api — OpenAI-совместимый шлюз к Perch (chat.perchai.app) по CLI-сессиям.
 
-Аккаунты берутся из реггера `register/data/accounts.jsonl`
+Аккаунты берутся из реггера `autoreg/perch-register/data/accounts.jsonl`
 (поля account_dir/session_file/live_ok). На запрос запускается официальный
 `perch run "<prompt>" --json --mode ask` с `PERCH_CLI_AUTH_DIR` нужного
 аккаунта и свежим cwd (threadId у Perch выводится из cwd → каждый запрос —
@@ -41,14 +41,16 @@ DEFAULTS = {
     "port": 12066,
     "api_key": "",
     "accounts_file": os.path.join(
-        ROOT, "..", "register", "data", "accounts.jsonl"),
+        ROOT, "..", "..", "..", "autoreg", "perch-register", "data", "accounts.jsonl"),
     "perch_cli": os.path.join(
-        ROOT, "..", "register", ".cli", "node_modules", ".bin", "perch"),
+        ROOT, "..", "..", "..", "autoreg", "perch-register", ".cli",
+        "node_modules", ".bin", "perch"),
     "node_bin": "node",
     "timeout_sec": 300,
     "max_concurrency": 3,
     "cooldown_sec": 600,
     "max_prompt_chars": 24000,
+    "effort": "off",
     "models": ["perch-auto", "deepseek-flash-starter", "glm-5.3-flash-starter", "crouton-alpha", "gemini-4-argon", "claude-opus-5.5", "gpt-6.1-sol", "gpt-6.1-terra", "kimi-3.1-pro", "hy4", "deepseek-v4.1-flash-1017", "gpt-6-luna", "claude-sonnet-5.5", "claude-haiku-5.5", "kimi-3", "grok-4.7", "grok-4.6", "glm-5.3", "glm-5.3-flash", "qwen-3.8-flash", "qwen-3.8-max", "qwen-3.8", "minimax-m3", "nemotron-ultra", "nemotron-lightning", "deepseek-v4", "deepseek-v4-flash-0731-262k", "qwen-3.7-plus", "inkling", "beam-1.0", "kimi-2.7", "glm-5.2", "gpt-6-sol", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"],
     "usage_log": os.path.join(DATA_DIR, "usage.jsonl"),
 }
@@ -196,7 +198,7 @@ def build_prompt(messages, max_chars=24000):
 
 # ── запуск тура ──────────────────────────────────────────────────────────
 
-def run_account(acc, prompt, timeout=None, model=None):
+def run_account(acc, prompt, timeout=None, model=None, effort=None):
     timeout = timeout or int(CFG["timeout_sec"])
     cli = CFG["perch_cli"]
     if not os.path.exists(cli):
@@ -215,6 +217,9 @@ def run_account(acc, prompt, timeout=None, model=None):
            "--cwd", req_dir]
     if model and model not in ("perch-auto", "auto"):
         cmd += ["--model", model]
+    effort = (effort if effort is not None else CFG.get("effort")) or ""
+    if effort:
+        cmd += ["--effort", str(effort)]
     started = time.time()
     try:
         p = subprocess.run(cmd, env=env, capture_output=True, text=True,
@@ -228,12 +233,18 @@ def run_account(acc, prompt, timeout=None, model=None):
         ok = (p.returncode == 0 and data.get("ok")
               and data.get("status") == "completed")
         usage = ((data.get("contextSnapshot") or {}).get("turnApiUsage") or {})
+        calls = [e for e in (data.get("events") or [])
+                 if e.get("type") == "model_call_completed"]
+        last = calls[-1] if calls else {}
         meta = {
             "model": ((data.get("contextSnapshot") or {}).get("modelId")
                       or data.get("model")),
             "duration_ms": int((time.time() - started) * 1000),
             "input_tokens": usage.get("inputTokens"),
             "output_tokens": usage.get("outputTokens"),
+            "ttft_ms": last.get("ttftMs"),
+            "output_ms": last.get("outputMs"),
+            "model_call_ms": last.get("durationMs"),
         }
         return bool(ok), data, meta
     except subprocess.TimeoutExpired:
@@ -249,7 +260,9 @@ def log_usage(email, model, meta, ok, err=""):
            "email": email, "model": model, "ok": ok,
            "duration_ms": meta.get("duration_ms"),
            "input_tokens": meta.get("input_tokens") or 0,
-           "output_tokens": meta.get("output_tokens") or 0}
+           "output_tokens": meta.get("output_tokens") or 0,
+           "ttft_ms": meta.get("ttft_ms"),
+           "output_ms": meta.get("output_ms")}
     if err:
         rec["error"] = err[:300]
     with _usage_lock:

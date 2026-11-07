@@ -1,5 +1,5 @@
 {
-  "_комментарий": "Скопируй в config.json и поправь под себя. Секретов здесь нет.",
+  "_комментарий": "Perch автореггер (chat.perchai.app). GitHub-пароли/сессии не коммитить.",
   "base_url": "https://chat.perchai.app",
   "app_url": "https://app.perchai.app",
   "service_name": "Perch",
@@ -11,7 +11,6 @@
   "npm_bin": "npm",
   "perch_cli": "",
   "perch_cli_version": "2.4.125",
-  "_cli_note": "perchai-cli ставится в .cli/ (bash tools/install-cli.sh), нужен node >= 22.",
   "liveness_run": true,
   "check_with_run": false,
   "run_timeout_sec": 300,
@@ -66,5 +65,6 @@
     "gpt-5.6-sol",
     "gpt-5.6-terra",
     "gpt-5.6-luna"
-  ]
+  ],
+  "liveness_effort": "off"
 }

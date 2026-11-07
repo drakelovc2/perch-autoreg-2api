@@ -43,8 +43,8 @@ bash start.sh                                # панель :9943
 ```
 
 Опции в `config.json`: `liveness_run` (проверочный тур после регистрации,
-по умолчанию `true`), `run_timeout_sec`, `batch_interval_sec`,
-`circuit_breaker_fails`.
+по умолчанию `true`), `liveness_effort` (`off` — чтобы проверка не уходила
+в ризонинг), `run_timeout_sec`, `batch_interval_sec`, `circuit_breaker_fails`.
 
 ## Флоу
 

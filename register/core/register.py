@@ -192,7 +192,8 @@ def choose_starter(acc):
 
 # ── запуск CLI-тура (используется и мониторингом, и мостом) ──────────────
 
-def run_prompt(acc, prompt, cwd=None, mode="ask", timeout=300, thread=None):
+def run_prompt(acc, prompt, cwd=None, mode="ask", timeout=300, thread=None,
+               effort=None):
     """`perch run` в окружении аккаунта → (ok, dict).
 
     cwd — рабочий каталог (threadId у Perch выводится из cwd: свежий cwd =
@@ -207,6 +208,8 @@ def run_prompt(acc, prompt, cwd=None, mode="ask", timeout=300, thread=None):
     cmd = [_node_bin(), cli, "run", prompt, "--json", "--mode", mode, "--cwd", cwd]
     if thread:
         cmd += ["--thread", thread]
+    if effort:
+        cmd += ["--effort", str(effort)]
     env = _cli_env(acc_dir)
     try:
         p = subprocess.run(cmd, env=env, capture_output=True, text=True,
@@ -481,7 +484,8 @@ def register_one(github=None, proxy=None, mail=None, on_step=None):
             for attempt in range(3):
                 ok, res = run_prompt(
                     acc, "Reply with exactly: ok",
-                    timeout=int(config.get("run_timeout_sec") or 300))
+                    timeout=int(config.get("run_timeout_sec") or 300),
+                    effort=config.get("liveness_effort") or "off")
                 if ok:
                     break
                 err = str(res.get("error") or res)
@@ -534,7 +538,8 @@ def check_account(acc, proxy=None, on_step=None):
         out = {"ok": True, "plan_required": d.get("planRequired")}
         if config.get("check_with_run", False):
             ok, res = run_prompt(acc, "Reply with exactly: ok",
-                                 timeout=int(config.get("run_timeout_sec") or 300))
+                                 timeout=int(config.get("run_timeout_sec") or 300),
+                                 effort=config.get("liveness_effort") or "off")
             out["run_ok"] = ok
             out["answer"] = (res.get("assistantText") or "")[:120]
             if not ok:
