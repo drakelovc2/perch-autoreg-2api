@@ -111,3 +111,9 @@ Claude Opus 5.5 и GPT-6.1 Sol — расход идёт с включённых
 Соблюдайте Terms of Service Perch и GitHub: массовая регистрация аккаунтов
 может нарушать правила сервисов. Автор не несёт ответственности за блокировки
 и последствия использования.
+
+---
+
+🔥 Telegram: [@antivibedrake](https://t.me/antivibedrake) · [@zakurulife](https://t.me/zakurulife)
+
+Только для личного использования — см. [DISCLAIMER.md](DISCLAIMER.md).
